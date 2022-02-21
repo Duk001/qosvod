@@ -1,0 +1,9 @@
+*.exe
+*.ts
+*.m3u8
+*.mkv
+*.png
+*.old
+frontend/node_modules
+frontend-vue/piqosvod/node_modules
+frontend
