@@ -22,7 +22,6 @@ type credentials struct {
 	Key  string
 }
 
-//var Credentials = credentials{Name: "piqosvod", Key: "7Yd0mfoGmBjfRE3DZCKlr6YlTfH5sNKIvMeL+zkGLiyAjjCwml/kO5k4ZF85PzEePcoKWyGh64HD+5zl8/j/vw=="}
 var Credentials credentials
 var serviceClient azblob.ServiceClient
 var ctx context.Context
@@ -59,7 +58,6 @@ func initDatabaseAbstraction() {
 
 	connString = "root@tcp(127.0.0.1:3306)/qosvod"
 
-	// connString := "root@localhost"
 	db, err = sql.Open("mysql", //"sqlserver" -> azure sql
 		connString)
 
@@ -106,8 +104,8 @@ func handleRequests() {
 func main() {
 	var err error
 
-	DATABASE_LOGIN = "root"         //os.Getenv("DATABASE_LOGIN")
-	DATABASE_PASSWORD = "localhost" //os.Getenv("DATABASE_PASSWORD")
+	DATABASE_LOGIN = "root"        
+	DATABASE_PASSWORD = "localhost" 
 	TRANSKODER_ADDRESS = os.Getenv("TRANSKODER_ADDRESS")
 	if TRANSKODER_ADDRESS == "" {
 		TRANSKODER_ADDRESS = "http://127.0.0.1:11001"

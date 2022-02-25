@@ -63,7 +63,6 @@ func Encoder(file []byte, filmName string) {
 
 	var ffmpegPath = "util\\ffmpeg.exe"
 	//var ffmpegPath = "/usr/local/bin/ffmpeg"
-	//var ffmpegPath = "mwader/static-ffmpeg:4.4.1"	// docker
 	var buf bytes.Buffer
 
 	qualityList, err := getFilmQuality(filmName)
@@ -75,7 +74,6 @@ func Encoder(file []byte, filmName string) {
 	for _, vq := range qualityList {
 
 		containerName := strings.ToLower(filmName + "-" + strings.Replace(vq.Resolution, ":", "-", -1) + "-" + vq.Bitrate)
-		// containerName = "ttt"
 		fmt.Println("Container Name: ", containerName)
 		container := serviceClient.NewContainerClient(containerName)
 		_, err := container.Create(ctx, nil)
@@ -103,10 +101,8 @@ func Encoder(file []byte, filmName string) {
 
 	cmd := exec.Command(command[0], command[1:]...)
 
-	//resultBuffer := bytes.NewBuffer(make([]byte, 5*1024*1024)) // pre allocate 5MiB buffer
 
 	cmd.Stderr = os.Stderr // bind log stream to stderr
-	//cmd.Stdout = resultBuffer // stdout result will be written here
 	stdin, err := cmd.StdinPipe() // Open stdin pipe
 	check(err)
 
@@ -139,11 +135,15 @@ func Transcode(file []byte, name string, segment string, bitrate string, resolut
 	//var fontPath = "util\\Roboto-Regular.ttf"
 	var buf bytes.Buffer
 
+
+	//? Add quality watermark to video
 	//file_name := name+"/"+bitrate+"/"+segment
 	//file_name := filepath.Join(".",name,bitrate,segment)
 	//fmt.Println("Saving segment to: ",file_name)
 	//watermarkText := resolution + " - " + bitrate + " - " + segment
 	//watermarkParam := fmt.Sprintf("drawtext=text='%s':x=40:y=H-th-40:fontfile=%s:fontsize=36:fontcolor=white:shadowcolor=black:shadowx=5:shadowy=5", watermarkText, fontPath)
+
+
 	log.Println("Transcoding seg: ", segment, "   bitrate: ", bitrate)
 	command := []string{ffmpegPath,
 		"-hide_banner", "-loglevel", "error",
@@ -184,7 +184,6 @@ func Transcode(file []byte, name string, segment string, bitrate string, resolut
 	blockBlob := container.NewBlockBlobClient(segment)
 
 	data := bytes.NewReader(buf.Bytes()) //buf//bytes.NewReader(&buf)
-	//data = bytes.NewReader(file) //!DEBUG
 	_, err = blockBlob.Upload(ctx, NopCloser(data), nil)
 	log.Println(err)
 
@@ -202,12 +201,12 @@ func ffmpegTest() {
 		"-version"}
 
 	cmd := exec.Command(command[0], command[1:]...)
-	cmd.Stderr = os.Stderr // bind log stream to stderr
+	cmd.Stderr = os.Stderr 
 
-	err := cmd.Start() // Start a process on another goroutine
+	err := cmd.Start() 
 	check(err)
 
-	err = cmd.Wait() // wait until ffmpeg finish
+	err = cmd.Wait() 
 	check(err)
 }
 
@@ -285,14 +284,11 @@ func uploadVideo(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintln(w, err)
 			return
 		}
-		//defer file.Close()
-		//out, err := ioutil.ReadAll(file)
-		//check(err)
+
 
 		Encoder(file, file_name)
 
-		//fmt.Fprintf(w, "File uploaded successfully: ")
-		//fmt.Fprintf(w, header.Filename)
+
 	}
 }
 
@@ -319,7 +315,6 @@ func getFilmQuality(filmName string) ([]videoQuality, error) {
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				return nil, err
-				//log.Fatalf("Error fetching url %s: %v", url, err)
 			}
 			var data []videoQuality
 			err = json.Unmarshal(body, &data)
@@ -365,8 +360,7 @@ func transcodeSegment(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Errorf("Error during reading body: %v", err)
 			}
-			//fmt.Println(out)
-			//return
+
 		} else {
 
 			defer file.Close()
@@ -376,7 +370,7 @@ func transcodeSegment(w http.ResponseWriter, r *http.Request) {
 			check(err)
 		}
 
-		//qualityList := baseVideoQualityList
+
 		qualityList, err := getFilmQuality(filmName)
 		if err != nil {
 			log.Println(err)
@@ -402,7 +396,6 @@ func handleRequests() {
 	http.HandleFunc("/upload", uploadVideo)
 	http.HandleFunc("/transcode", transcodeSegment)
 	http.HandleFunc("/manifest", manifestHandler)
-	//log.Fatal(http.ListenAndServe(":10001", nil))
 
 	httpPort := os.Getenv("HTTP_PORT")
 	if httpPort == "" {
@@ -422,7 +415,6 @@ func main() {
 	// blob_key := os.Getenv("BLOB_KEY")
 	// blob_acc_name := os.Getenv("BLOB_NAME")
 	// blob_url := os.Getenv("BLOB_URL")
-	// AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;
 	blob_key := os.Getenv("BLOB_KEY")
 	if blob_key == "" {
 		blob_key = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
