@@ -7,3 +7,4 @@
 frontend/node_modules
 frontend-vue/piqosvod/node_modules
 frontend
+.vscode

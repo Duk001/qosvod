@@ -133,8 +133,7 @@ export default {
         //console.log(res)
 
         var filmId = res.data;
-        
-        
+
         //? File
         const formData = new FormData();
         formData.append("file", this.filmFile);
@@ -148,7 +147,7 @@ export default {
           }
         );
         console.log("Response(film Data): ", res2.status);
-        
+
         const formData_poster = new FormData();
         formData_poster.append("file", this.posterFile);
         const res3 = await axios.post(

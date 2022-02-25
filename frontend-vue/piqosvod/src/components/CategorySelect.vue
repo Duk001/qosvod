@@ -60,7 +60,6 @@ export default {
     resetCategory() {
       this.selectedCategories = [];
       this.$emit("listOfCategories", this.selectedCategories);
-
     },
     closeCategory() {
       this.$emit("changeCategoriesVisibility", false);

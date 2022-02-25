@@ -3,11 +3,10 @@
     <div class="overlay" v-on:click="NOisOverlay = false">
       <div class="menu">
         <ul class="menu-list">
-          <li>{{username}}</li>
+          <li>{{ username }}</li>
           <!-- <li>Add new film</li> -->
           <li>About</li>
-          <li><div class="logout-btn" v-on:click="logout()">Logout</div>
-          </li>
+          <li><div class="logout-btn" v-on:click="logout()">Logout</div></li>
         </ul>
       </div>
     </div>
@@ -17,37 +16,30 @@
 <script>
 import axios from "axios";
 export default {
-  inject:['host'],
+  inject: ["host"],
   props: ["isOverlay"],
   data() {
     return {
       overlay: true,
       newFilmForm: false,
-      username : null,
+      username: null,
     };
   },
   mounted() {
-    this.username = sessionStorage.username
+    this.username = sessionStorage.username;
   },
-  methods:{
-    async logout(){
+  methods: {
+    async logout() {
       let tokenHeader = { token: sessionStorage.token };
       const res = await axios.get(this.host + "logout", {
         headers: tokenHeader,
       });
       console.log(res);
-      // if (res.data == sessionStorage.token) {
-      //   this.token = sessionStorage.token;
-      // } else {
-      //   this.token = null;
-      // }
-
-      sessionStorage.username = null
-      sessionStorage.token = null
-      window.location.reload(true)
-
-    }
-  }
+      sessionStorage.username = null;
+      sessionStorage.token = null;
+      window.location.reload(true);
+    },
+  },
 };
 </script>
 
@@ -76,10 +68,9 @@ export default {
 .menu-list {
   list-style: none;
 }
-.logout-btn{
+.logout-btn {
   /* margin: 10px; */
   cursor: pointer;
-
 }
 .menu-list li {
   background-color: #333;

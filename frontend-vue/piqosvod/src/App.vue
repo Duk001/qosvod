@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import FilmBlock from './components/FilmBlock.vue';
-import FilmBlocks from './components/FilmBlocks.vue';
+import FilmBlock from "./components/FilmBlock.vue";
+import FilmBlocks from "./components/FilmBlocks.vue";
 import NavBar from "./components/NavBar.vue";
 export default {
   name: "App",
@@ -28,7 +28,10 @@ export default {
   background-color: #000000;
   margin-top: 0px;
 }
-html,body { margin: 0 !important;
-background-color: #000000;}
+html,
+body {
+  margin: 0 !important;
+  background-color: #000000;
+}
 </style>
 

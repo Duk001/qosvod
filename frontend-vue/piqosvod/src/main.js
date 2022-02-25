@@ -8,7 +8,7 @@ import hosts from './host'
 const SimpleRouterApp = {
     provide: {
       //host: "https://piqosvod.azurewebsites.net/"
-      host: hosts["prod"]  //! ustaw "prod" na produkcję
+      host: hosts["dev"]  //! ustaw "prod" na produkcję
     },
     data: () => ({
       currentRoute: window.location.pathname
@@ -46,14 +46,4 @@ const SimpleRouterApp = {
 
 
 
-
-
-
-
-  // let app=createApp(SimpleRouterApp,{
-  //   provide:{
-  //     host:"https://piqosvod.azurewebsites.net/"
-  //   }
-  // }).mount('#app')
 createApp(SimpleRouterApp).mount('#app')
-//createApp(App).mount('#app')

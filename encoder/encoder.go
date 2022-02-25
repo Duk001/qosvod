@@ -31,8 +31,6 @@ type videoQuality struct {
 	Resolution string `json:"Resolution"`
 }
 
-
-
 var Credentials credentials
 
 var serviceClient azblob.ServiceClient
@@ -63,8 +61,8 @@ func Encoder(file []byte, filmName string) {
 
 	fmt.Println("Encoder")
 
-	// var ffmpegPath = "util\\ffmpeg.exe"
-	var ffmpegPath = "/usr/local/bin/ffmpeg"
+	var ffmpegPath = "util\\ffmpeg.exe"
+	//var ffmpegPath = "/usr/local/bin/ffmpeg"
 	//var ffmpegPath = "mwader/static-ffmpeg:4.4.1"	// docker
 	var buf bytes.Buffer
 
@@ -77,7 +75,7 @@ func Encoder(file []byte, filmName string) {
 	for _, vq := range qualityList {
 
 		containerName := strings.ToLower(filmName + "-" + strings.Replace(vq.Resolution, ":", "-", -1) + "-" + vq.Bitrate)
-		//containerName = "test-two-THRE"
+		// containerName = "ttt"
 		fmt.Println("Container Name: ", containerName)
 		container := serviceClient.NewContainerClient(containerName)
 		_, err := container.Create(ctx, nil)
@@ -95,10 +93,10 @@ func Encoder(file []byte, filmName string) {
 		"-hls_playlist_type", "vod",
 		"-hls_flags", "independent_segments",
 		"-hls_segment_type", "mpegts",
-		"-hls_segment_filename", "http://127.0.0.1:8080" + "/transcode" + "?filmName=" + filmName + "&name=" + "%02d.ts",
+		"-hls_segment_filename", "http://127.0.0.1:11001" + "/transcode" + "?filmName=" + filmName + "&name=" + "%02d.ts",
 
 		"-method", "POST",
-		"http://127.0.0.1:8080" + "/manifest" + "?name=" + filmName + ".m3u8",
+		"http://127.0.0.1:11001" + "/manifest" + "?name=" + filmName + ".m3u8",
 		//"stream_%v/stream.m3u8",
 
 	}
@@ -136,7 +134,8 @@ func Encoder(file []byte, filmName string) {
 }
 func Transcode(file []byte, name string, segment string, bitrate string, resolution string, container azblob.ContainerClient) {
 
-	var ffmpegPath = "/usr/local/bin/ffmpeg"
+	//var ffmpegPath = "/usr/local/bin/ffmpeg"
+	var ffmpegPath = "util\\ffmpeg.exe"
 	//var fontPath = "util\\Roboto-Regular.ttf"
 	var buf bytes.Buffer
 
@@ -196,7 +195,8 @@ func Transcode(file []byte, name string, segment string, bitrate string, resolut
 func ffmpegTest() {
 
 	//var ffmpegPath = "util\\ffmpeg.exe"
-	var ffmpegPath = "/usr/local/bin/ffmpeg" // docker
+	// var ffmpegPath = "/usr/local/bin/ffmpeg" // docker
+	var ffmpegPath = "util\\ffmpeg.exe"
 
 	command := []string{ffmpegPath,
 		"-version"}
@@ -260,26 +260,6 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint Hit: homePage")
 }
 
-// infoHandler returns an HTML upload form	-> Debug only
-func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		fmt.Fprintf(w, `<html>
-			<head>
-			<title>GoLang HTTP Fileserver</title>
-			</head>
-			<body>
-			<h2>Upload a file</h2>
-			<form action="/upload" method="post" enctype="multipart/form-data">
-			<label for="file">Filename:</label>
-			<input type="file" name="file" id="file">
-			<br>
-			<input type="submit" name="submit" value="Submit">
-			</form>
-			</body>
-			</html>`)
-	}
-}
-
 func uploadVideo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
@@ -316,25 +296,6 @@ func uploadVideo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// infoHandler returns an HTML upload form	-> Debug only
-func transcodeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		fmt.Fprintf(w, `<html>
-			<head>
-			<title>Transcode DEBUG</title>
-			</head>
-			<body>
-			<h2>Upload a file</h2>
-			<form action="/transcode" method="post" enctype="multipart/form-data">
-			<label for="file">Filename:</label>
-			<input type="file" name="file" id="file">
-			<br>
-			<input type="submit" name="submit" value="Submit">
-			</form>
-			</body>
-			</html>`)
-	}
-}
 func getFilmQuality(filmName string) ([]videoQuality, error) {
 	tryNumber := 0
 	for tryNumber < 12 {
@@ -438,16 +399,14 @@ func transcodeSegment(w http.ResponseWriter, r *http.Request) {
 
 func handleRequests() {
 	http.HandleFunc("/", homePage)
-	http.HandleFunc("/uploadForm", uploadHandler)
 	http.HandleFunc("/upload", uploadVideo)
-	http.HandleFunc("/transcodeForm", transcodeHandler)
 	http.HandleFunc("/transcode", transcodeSegment)
 	http.HandleFunc("/manifest", manifestHandler)
 	//log.Fatal(http.ListenAndServe(":10001", nil))
 
 	httpPort := os.Getenv("HTTP_PORT")
 	if httpPort == "" {
-		httpPort = "8080"
+		httpPort = "11001"
 	}
 	log.Fatal(http.ListenAndServe(":"+httpPort, nil))
 }
@@ -457,11 +416,27 @@ func handleRequests() {
 func main() {
 	var err error
 	BACKEND_SERVER_ADDRESS = os.Getenv("BACKEND_SERVER_ADDRESS")
+	if BACKEND_SERVER_ADDRESS == "" {
+		BACKEND_SERVER_ADDRESS = "http://127.0.0.1:11000"
+	}
+	// blob_key := os.Getenv("BLOB_KEY")
+	// blob_acc_name := os.Getenv("BLOB_NAME")
+	// blob_url := os.Getenv("BLOB_URL")
+	// AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;
 	blob_key := os.Getenv("BLOB_KEY")
+	if blob_key == "" {
+		blob_key = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+	}
 	blob_acc_name := os.Getenv("BLOB_NAME")
+	if blob_acc_name == "" {
+		blob_acc_name = "devstoreaccount1"
+	}
 	blob_url := os.Getenv("BLOB_URL")
+	if blob_url == "" {
+		blob_url = "http://127.0.0.1:10000/devstoreaccount1"
+	}
 
-	fmt.Println("acc: ",blob_acc_name,"\nkey: ",blob_key,"\nurl: ",blob_url,"\nbackend server: ",BACKEND_SERVER_ADDRESS)
+	fmt.Println("acc: ", blob_acc_name, "\nkey: ", blob_key, "\nurl: ", blob_url, "\nbackend server: ", BACKEND_SERVER_ADDRESS)
 
 	Credentials = credentials{Name: blob_acc_name, Key: blob_key}
 	ffmpegTest()

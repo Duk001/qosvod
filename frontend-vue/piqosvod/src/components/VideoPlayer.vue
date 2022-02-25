@@ -149,7 +149,7 @@ export default {
 };
 //let counter = 0;
 
-let host = hosts["prod"] //!ustaw prod na produkcję
+let host = hosts["dev"] //!ustaw prod na produkcję
 videojs.options.hls.overrideNative = true;
 videojs.Vhs.xhr.beforeRequest = function (options) {
   //debugger

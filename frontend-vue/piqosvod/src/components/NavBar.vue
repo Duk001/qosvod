@@ -1,25 +1,29 @@
 <template>
   <!-- <div> -->
-    <div class="navbar">
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><div class="cat-button" v-on:click="openCategorySelect()">Categories</div></li>
-        <li>
-          <div class="add-button" v-on:click="toogleNewFilmFrom">Add</div>
-        </li>
-        <li class="settings" v-on:click="toggleOvelray">
-          <div class="bar1"></div>
-          <div class="bar2"></div>
-          <div class="bar3"></div>
-          <!-- <slide-menu></slide-menu> -->
-        </li>
-      </ul>
-    </div>
-    <slide-menu :isOverlay="overlay"></slide-menu>
-    <new-film-form
-      :isVisible="newFilmForm"
-      @changeFormVisibility="changeFV($event)"
-    ></new-film-form>
+  <div class="navbar">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li>
+        <div class="cat-button" v-on:click="openCategorySelect()">
+          Categories
+        </div>
+      </li>
+      <li>
+        <div class="add-button" v-on:click="toogleNewFilmFrom">Add</div>
+      </li>
+      <li class="settings" v-on:click="toggleOvelray">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+        <!-- <slide-menu></slide-menu> -->
+      </li>
+    </ul>
+  </div>
+  <slide-menu :isOverlay="overlay"></slide-menu>
+  <new-film-form
+    :isVisible="newFilmForm"
+    @changeFormVisibility="changeFV($event)"
+  ></new-film-form>
   <!-- </div> -->
 </template>
 <script>
@@ -28,7 +32,7 @@ import SlideMenu from "./SlideMenu";
 
 export default {
   name: "NavBar",
-  inject:['host'],
+  inject: ["host"],
   components: {
     SlideMenu,
     NewFilmForm,
