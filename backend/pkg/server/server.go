@@ -16,12 +16,11 @@ import (
 	"reflect"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Duk001/qosvod/backend/pkg/film"
-	"github.com/Duk001/qosvod/backend/pkg/loggedusers"
+	loggedusers "github.com/Duk001/qosvod/backend/pkg/loggedusers"
 	"github.com/Duk001/qosvod/backend/pkg/usersconnectionquality"
 	"github.com/Duk001/qosvod/backend/pkg/videoquality"
 	_ "github.com/denisenkom/go-mssqldb"
 )
-
 func check(err error) {
 	if err != nil {
 		log.Fatalln(err)
@@ -47,7 +46,7 @@ type Server struct {
 	UsersConectionQuality *usersconnectionquality.UsersConnectionQuality
 	VideoQualityLogger    *videoquality.VideoQualityLogger
 	FilmVideoQuality      *videoquality.FilmVideoQuality
-	LoggedUsers           *loggedUsers.LoggedUsers
+	LoggedUsers           *loggedusers.LoggedUsers
 	db                    *sql.DB
 	ctx                   context.Context
 	serviceClient         azblob.ServiceClient
@@ -59,7 +58,7 @@ func (s *Server) Init(db *sql.DB, ctx context.Context, serviceClient azblob.Serv
 	s.ctx = ctx
 	s.serviceClient = serviceClient
 	s.transkoderAddress = transkoderAddress
-	s.LoggedUsers = &loggedUsers.LoggedUsers{}
+	s.LoggedUsers = &loggedusers.LoggedUsers{}
 	s.FilmVideoQuality = &videoquality.FilmVideoQuality{}
 	s.VideoQualityLogger = &videoquality.VideoQualityLogger{}
 	s.UsersConectionQuality = &usersconnectionquality.UsersConnectionQuality{}
@@ -71,7 +70,7 @@ func (s *Server) HomePage(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Server) loginUser(login, password string) (string, bool) {
 	var dbPassword string
-	row, err := s.db.QueryContext(s.ctx, "select password from users where login = ?", login)
+	row, err := s.db.QueryContext(s.ctx, "select password from users where login = @p1", login)
 	if err != nil {
 		return "", false
 		//log.Fatal(err)
@@ -91,7 +90,9 @@ func (s *Server) loginUser(login, password string) (string, bool) {
 
 	return "", false
 }
-func (s *Server) VideoManifest(w http.ResponseWriter, r *http.Request) {
+
+// Endpoint for downloading video manifest file
+func (s *Server) VideoManifestEndpoint(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
 
@@ -124,7 +125,9 @@ func (s *Server) VideoManifest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(data.Bytes())
 }
-func (s *Server) VideoSegment(w http.ResponseWriter, r *http.Request) {
+
+// Endpoint for downloading video segment
+func (s *Server) VideoSegmentEndpoint(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers, token")
 	switch r.Method {
@@ -175,7 +178,7 @@ func (s *Server) VideoSegment(w http.ResponseWriter, r *http.Request) {
 		w.Write(data.Bytes())
 	}
 }
-func (s *Server) BandwidthMonitor(w http.ResponseWriter, r *http.Request) {
+func (s *Server) BandwidthMonitorEndpoint(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers, token")
 	switch r.Method {
@@ -207,7 +210,8 @@ func (s *Server) BandwidthMonitor(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 }
-func (s *Server) InitFilmSession(w http.ResponseWriter, r *http.Request) {
+// Endpoint initiates film session, needed for every film session.
+func (s *Server) InitFilmSessionEndpoint(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers, token")
 	switch r.Method {
@@ -383,8 +387,7 @@ func (s *Server) FilmFileEndpoint(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			//TODO  Clean database and azr containers
-			_, err = s.db.Query("DELETE FROM films WHERE id = ?", file_name)
+			_, err = s.db.Query("DELETE FROM films WHERE id = @p1", file_name)
 			if err != nil {
 				log.Println(err)
 			}
@@ -506,6 +509,7 @@ func (s *Server) LogoutEndpoint(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 }
+// Get video quality log of specific user, depreciated 
 func (s *Server) UsersVideoQualityLogEndpoint(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers, token")
@@ -515,6 +519,7 @@ func (s *Server) UsersVideoQualityLogEndpoint(w http.ResponseWriter, r *http.Req
 		w.Write(s.VideoQualityLogger.Jsonify())
 	}
 }
+// Get list of available video qualities of a film. 
 func (s *Server) FilmQualityEndpoint(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -633,6 +638,7 @@ func (s *Server) FilmPosterEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+// Algorithm testing endpoint, allows to test ABR algorithm without downloading real segments.
 func (s *Server) ABRTest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers, token")

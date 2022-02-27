@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/google/uuid"
-	"log"
-	"strings"
 )
 
 func GetListOfFilmIDs(db *sql.DB) []string {
@@ -33,20 +35,20 @@ func GetListOfFilmIDsByCategory(categories string, db *sql.DB) []string {
 	var id string
 	var listOfIDs []string
 	listOfCategories := strings.Split(categories, ",")
-	qms, listOfCategoriesInterface := func() (string, []interface{}) {
+	qms, listOfCategoriesInterface := func() (string, []interface{}) {	// make string of placeholders for query.
 		out := ""
 		outInterface := []interface{}{}
 
 		for i := 1; i <= len(listOfCategories); i++ {
 			tmp := listOfCategories[i-1]
 			outInterface = append(outInterface, tmp)
-			//out += fmt.Sprintf("@p%d,", i)	-> azure sql
-			out += "?,"
+			out += fmt.Sprintf("@p%d,", i) //	-> azure sql
+			//out += "?,"
 		}
 		return out[:len(out)-1], outInterface
 	}()
 
-	q := "SELECT id FROM films WHERE category IN ( " + qms + " );" //TODO mssql: The data types text and nvarchar are incompatible in the equal to operator.
+	q := "SELECT id FROM films WHERE category IN ( " + qms + " );" 
 	rows, err := db.Query(q, listOfCategoriesInterface...)
 	if err != nil {
 		log.Println("getListOfFilmIDsByCategory -> \n", err)
@@ -84,20 +86,20 @@ func GetListOfFilmCategories(db *sql.DB) []string {
 }
 func PostNewFilmCategory(category string, db *sql.DB) error {
 	value := strings.ToLower(category)
-	_, err := db.Query("insert into categories values ( ? )", value)
+	_, err := db.Query("insert into categories values ( @p1 )", value)
 	return err
 }
 func GenerateUUID(table string, db *sql.DB) string {
 	id := uuid.New().String()
-	//id = "id123"
-	row, err := db.Query("select id from "+table+" where id = ?", id)
-	if err != nil {
+
+	row, err := db.Query("select id from "+table+" where id = @p1", id)
+	if err != nil {	// if selected table doesnt exist -> shouldn't ever happen.
 		log.Fatal(err)
 	}
 	defer row.Close()
 	row.Next()
 	err = row.Scan(&id)
-	if err == nil {
+	if err == nil {	// if created id exists, create new id 
 		id = GenerateUUID(table, db)
 	}
 	return id
@@ -128,7 +130,7 @@ func NewFilmData(Name, Owner, Description, Category, Quality string, db *sql.DB)
 	return data, err
 }
 
-type RawFilmData struct {
+type RawFilmData struct {	// used when reading film data from json
 	Name        string `json:"title"`
 	Owner       string `json:"owner"`
 	Description string `json:"description"`
@@ -142,7 +144,7 @@ func (r *RawFilmData) CreateFilmData(db *sql.DB) (filmData, error) {
 }
 func GetDataOfFilmByID(id string, db *sql.DB) (filmData, error) {
 	var data filmData
-	row, err := db.Query("select id, name, owner, description, category,quality, visible from films where id = ?", id)
+	row, err := db.Query("select id, name, owner, description, category,quality, visible from films where id = @p1", id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -157,9 +159,11 @@ func GetDataOfFilmByID(id string, db *sql.DB) (filmData, error) {
 	return data, errors.New("Film with id: " + id + " not found in database" + "		->		" + err.Error())
 }
 
+
+// Adds film data to database
 func PostFilmData(data filmData, db *sql.DB) error {
 	var name string
-	row, err := db.Query("select name from categories where name = ?", data.Category)
+	row, err := db.Query("select name from categories where name = @p1", data.Category)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -171,12 +175,13 @@ func PostFilmData(data filmData, db *sql.DB) error {
 		if err != nil {
 			return err
 		}
-		//na = generateUUID(table)
 	}
-	_, err = db.Query("insert into films values (?, ?, ?, ?, ?, ?,?)", data.Name, data.Id, data.Owner, data.Description, data.Category, data.visible, data.Quality)
+	_, err = db.Query("insert into films values (@p1, @p2, @p3, @p4, @p5, @p6,@p7)", data.Name, data.Id, data.Owner, data.Description, data.Category, data.visible, data.Quality)
 
 	return err
 }
+
+// Deletes film data from database, and film files from azure blob
 func DeleteFilm(data filmData, db *sql.DB, serviceClient azblob.ServiceClient, ctx context.Context) []error {
 	var errors []error
 	filmQualityList := strings.Split(data.Quality, ",")
@@ -210,7 +215,7 @@ func DeleteFilm(data filmData, db *sql.DB, serviceClient azblob.ServiceClient, c
 			errors = append(errors, err)
 		}
 
-		_, err = db.Query("DELETE FROM films WHERE id = ?", data.Id)
+		_, err = db.Query("DELETE FROM films WHERE id = @p1", data.Id)
 		if err != nil {
 			log.Println(err)
 			errors = append(errors, err)

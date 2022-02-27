@@ -1,4 +1,4 @@
-package loggedUsers
+package  loggedusers
 
 import (
 	"github.com/google/uuid"
