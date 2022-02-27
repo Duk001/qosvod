@@ -140,12 +140,7 @@ export default {
       stateListener();
     },
   },
-  watch: {
-    // player(newValue, oldValue){
-    //   console.log("From Watch: ",oldValue)
-    //   console.log("From Watch: ",newValue)
-    // }
-  },
+
 };
 //let counter = 0;
 
@@ -175,29 +170,7 @@ videojs.Vhs.xhr.beforeRequest = function (options) {
   return options;
 };
 
-// playerStateListener();
-// function playerStateListener() {
-//   const stateListener = () => {
-//     if (!player.paused()) {
-//       // Player logic -> zmienić ->  wystartować przy zmianie segmentu
-//       var vhs = player.tech((IWillNotUseThisInPlugins = true)).vhs;
-//       console.log(vhs.bandwidth);
 
-//       var xhr = new XMLHttpRequest();
-//       xhr.open("POST", this.host+"bandwidth", true);
-//       xhr.setRequestHeader("Content-Type", "application/json");
-//       xhr.send(
-//         JSON.stringify({
-//           bandwidth: vhs.bandwidth,
-//           user: "test",
-//         })
-//       );
-//     } else {
-//     }
-//     return setTimeout(stateListener, 100);
-//   };
-//   stateListener();
-// }
 </script>
 
 <style>
