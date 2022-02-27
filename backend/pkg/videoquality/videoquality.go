@@ -20,7 +20,7 @@ func GetFilmQuality(id string,db *sql.DB) ([]VideoQuality, error) { //TODO Add f
 	var data []VideoQuality
 	var tmpData string
 
-	row, err := db.Query("select quality from films where id = ?", id)
+	row, err := db.Query("select quality from films where id = @p1", id)
 	if err != nil {
 		log.Fatal(err)
 	}

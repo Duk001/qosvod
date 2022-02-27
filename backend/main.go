@@ -9,8 +9,8 @@ import (
 	"database/sql"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Duk001/qosvod/backend/pkg/server"
-	// _ "github.com/denisenkom/go-mssqldb"
-	_ "github.com/go-sql-driver/mysql"
+	 _ "github.com/denisenkom/go-mssqldb"
+	//_ "github.com/go-sql-driver/mysql"
 )
 
 var DATABASE_LOGIN string
@@ -45,7 +45,7 @@ func initDatabaseAbstraction() {
 		server = "127.0.0.1"
 	}
 
-	var port = 3306
+	var port = 1433
 	var user = DATABASE_LOGIN
 	var password = DATABASE_PASSWORD
 	var database = os.Getenv("DATABASE_NAME")
@@ -56,9 +56,9 @@ func initDatabaseAbstraction() {
 	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
 		server, user, password, port, database)
 
-	connString = "root@tcp(127.0.0.1:3306)/qosvod"
+	//connString = "root@tcp(127.0.0.1:3306)/qosvod"
 
-	db, err = sql.Open("mysql", //"sqlserver" -> azure sql
+	db, err = sql.Open("sqlserver", //"sqlserver" -> azure sql
 		connString)
 
 	if err != nil {
@@ -74,16 +74,16 @@ func handleRequests() {
 	s.Init(db, ctx, serviceClient, TRANSKODER_ADDRESS)
 	s.Name = "qosvod"
 	http.HandleFunc("/", s.HomePage)
-	http.HandleFunc("/videoManifest", s.VideoManifest)
-	http.HandleFunc("/videoSegment", s.VideoSegment)
-	http.HandleFunc("/bandwidth", s.BandwidthMonitor)
+	http.HandleFunc("/videoManifest", s.VideoManifestEndpoint)
+	http.HandleFunc("/videoSegment", s.VideoSegmentEndpoint)
+	http.HandleFunc("/bandwidth", s.BandwidthMonitorEndpoint)
 	http.HandleFunc("/categories", s.FilmsCategoriesListEndpoint)
 	http.HandleFunc("/films", s.FilmsIdListEndpoint)
 	http.HandleFunc("/filmsByCategory", s.FilmsIdListByCategoryEndpoint)
 	http.HandleFunc("/film", s.FilmDataEndpoint)
 	http.HandleFunc("/filmFile", s.FilmFileEndpoint)
 	http.HandleFunc("/deleteFilm", s.DeleteFilmEndpoint)
-	http.HandleFunc("/initFilmSession", s.InitFilmSession)
+	http.HandleFunc("/initFilmSession", s.InitFilmSessionEndpoint)
 	http.HandleFunc("/login", s.UserLoginEndpoint)
 	http.HandleFunc("/logout", s.LogoutEndpoint)
 	http.HandleFunc("/tokenCheck", s.TokenCheckEndpoint)
@@ -95,7 +95,7 @@ func handleRequests() {
 	httpPort := os.Getenv("HTTP_PORT")
 
 	if httpPort == "" {
-		httpPort = "11000"
+		httpPort = "8080"
 	}
 	log.Fatal(http.ListenAndServe(":"+httpPort, nil))
 
@@ -104,8 +104,12 @@ func handleRequests() {
 func main() {
 	var err error
 
-	DATABASE_LOGIN = "root"        
-	DATABASE_PASSWORD = "localhost" 
+	DATABASE_LOGIN = os.Getenv("DATABASE_LOGIN")
+	DATABASE_PASSWORD = os.Getenv("DATABASE_PASSWORD")
+	if DATABASE_LOGIN == "" || DATABASE_PASSWORD == ""{
+		DATABASE_LOGIN = "root"        
+		DATABASE_PASSWORD = "localhost" 
+	}
 	TRANSKODER_ADDRESS = os.Getenv("TRANSKODER_ADDRESS")
 	if TRANSKODER_ADDRESS == "" {
 		TRANSKODER_ADDRESS = "http://127.0.0.1:11001"
