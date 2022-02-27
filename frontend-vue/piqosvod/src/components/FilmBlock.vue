@@ -87,32 +87,6 @@ export default {
     getImgURL() {
       let url = this.host + "filmPoster?name=" + this.filmId;
       return url;
-
-      console.log("rekord: ", this.attachmentRecord);
-      let record = this.attachmentRecord[0];
-
-      if (record.data == null) {
-        //  set(record, "data", null);
-        axios
-          .get(this.host + "filmPoster?name=" + this.filmId, {
-            headers: {
-              token: this.token,
-            },
-          })
-          .then((result) => {
-            let reader = new FileReader();
-            reader.readAsDataURL(result.data);
-            reader.onload = () => {
-              this.img = reader.result;
-            };
-            //  this.img = result.data
-            // record.data = result.data
-            // set(record, "data", result.data);
-          });
-      }
-      // console.log(this.attachmentRecord)
-      // return this.attachmentRecord[0].data;
-      return this.img;
     },
   },
 };
