@@ -42,17 +42,21 @@ func (lu *LoggedUsers) _generateToken() string {
 	}
 	return Token
 }
+// Add new logged user
+// 
+// expiration time in hours 
 func (lu *LoggedUsers) Add(username string, expirationTime int) string {
 	//expiration time in hours
 	addedTime := time.Duration(expirationTime)
 	tokenExpirationTime := time.Now().Add(time.Hour * addedTime)
 
-	for _, user := range lu.users {
-		if username == user.Username {
-			user.TokenExpirationTime = tokenExpirationTime
-			return user.Token
-		}
-	}
+	// Uncomment if user can have only one active session
+	// for _, user := range lu.users {
+	// 	if username == user.Username {
+	// 		user.TokenExpirationTime = tokenExpirationTime
+	// 		return user.Token
+	// 	}
+	// }
 
 	var newUserCredentials userCredentials
 	newUserCredentials.Username = username

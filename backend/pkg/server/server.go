@@ -16,7 +16,7 @@ import (
 	"reflect"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Duk001/qosvod/backend/pkg/film"
-	loggedusers "github.com/Duk001/qosvod/backend/pkg/loggedusers"
+	"github.com/Duk001/qosvod/backend/pkg/loggedusers"
 	"github.com/Duk001/qosvod/backend/pkg/usersconnectionquality"
 	"github.com/Duk001/qosvod/backend/pkg/videoquality"
 	_ "github.com/denisenkom/go-mssqldb"
@@ -135,6 +135,7 @@ func (s *Server) VideoSegmentEndpoint(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("\nEndpoint Hit: videoSegment")
 		token := r.Header.Get("token")
 		user := s.LoggedUsers.FindByToken(token)
+		
 		if reflect.ValueOf(user.Token).IsZero() || time.Now().After(user.TokenExpirationTime) { // login check
 			w.WriteHeader(http.StatusForbidden)
 			return
@@ -217,7 +218,6 @@ func (s *Server) InitFilmSessionEndpoint(w http.ResponseWriter, r *http.Request)
 	switch r.Method {
 	case "POST":
 		token := r.Header.Get("token")
-		//log.Println(LoggedUsers.FindByToken(token))
 		user := s.LoggedUsers.FindByToken(token)
 		if reflect.ValueOf(user.Token).IsZero() || time.Now().After(user.TokenExpirationTime) { // login check
 			w.WriteHeader(http.StatusForbidden)
@@ -326,6 +326,16 @@ func (s *Server) FilmDataEndpoint(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(data.Jsonify())
 	case "POST":
+		token := r.Header.Get("token")
+		user := s.LoggedUsers.FindByToken(token)
+		
+		if reflect.ValueOf(user.Token).IsZero() || time.Now().After(user.TokenExpirationTime) { // login check
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		user.TokenExpirationTime = time.Now().Add(time.Hour)
+
+
 		var data film.RawFilmData
 		err := json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
@@ -363,7 +373,21 @@ func (s *Server) FilmFileEndpoint(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.ContentLength)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+		
+		token := r.Header.Get("token")
+		user := s.LoggedUsers.FindByToken(token)
+		
+		if reflect.ValueOf(user.Token).IsZero() || time.Now().After(user.TokenExpirationTime) { // login check
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		user.TokenExpirationTime = time.Now().Add(time.Hour)
 
+		
+		if  user.Username != "admin" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		file_name_array, ok := r.URL.Query()["name"]
 		if !ok {
 			w.WriteHeader(http.StatusBadRequest)

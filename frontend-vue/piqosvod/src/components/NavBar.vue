@@ -9,7 +9,7 @@
         </div>
       </li>
       <li>
-        <div class="add-button" v-on:click="toogleNewFilmFrom">Add</div>
+        <div class="add-button" v-if="username=='admin'" v-on:click="toogleNewFilmFrom">Add</div>
       </li>
       <li class="settings" v-on:click="toggleOvelray">
         <div class="bar1"></div>
@@ -41,8 +41,12 @@ export default {
     return {
       overlay: false,
       newFilmForm: false,
+      username: null,
       // categoryOpen : false,
     };
+  },
+  mounted() {
+    this.username = sessionStorage.username;
   },
   methods: {
     toggleOvelray() {

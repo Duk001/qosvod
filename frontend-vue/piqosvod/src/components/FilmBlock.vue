@@ -17,7 +17,7 @@
           <h3 class="film-description">{{ this.filmData.Description }}</h3>
         </div>
         <div class="watch-film-button" v-on:click="openVideoPlayer">Watch</div>
-        <div class="delete-film-button" v-on:click="deleteFilm">Delete</div>
+        <div class="delete-film-button" v-if="username=='admin'" v-on:click="deleteFilm">Delete</div>
       </div>
     </div>
   </div>
@@ -49,7 +49,11 @@ export default {
       img: null,
       loaded: false,
       token: sessionStorage.token,
+      username: null,
     };
+  },
+  mounted() {
+    this.username = sessionStorage.username;
   },
   async created() {
     //console.log(this.filmId);
