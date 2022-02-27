@@ -8,7 +8,7 @@ import hosts from './host'
 const SimpleRouterApp = {
     provide: {
       //host: "https://piqosvod.azurewebsites.net/"
-      host: hosts["dev"]  //! ustaw "prod" na produkcję
+      host: hosts["prod"]  //! ustaw "prod" na produkcję
     },
     data: () => ({
       currentRoute: window.location.pathname
