@@ -1,7 +1,21 @@
-[![Netlify Status](https://api.netlify.com/api/v1/badges/b1661399-dc43-4485-b71a-ceb3c076f04c/deploy-status)](https://friendly-haibt-d1928a.netlify.app/)
-# piqosvod
-### What is piqosvod?
-Piqosvod is a small 
+
+# qosvod [![Netlify Status](https://api.netlify.com/api/v1/badges/b1661399-dc43-4485-b71a-ceb3c076f04c/deploy-status)](https://friendly-haibt-d1928a.netlify.app/)
+
+qosvod is a  Go and Vue.js based web app providing video on demand with QoS in mind. 
+
+qosvod actively chooses the appropriate video bitrate and resolution based on video buffer status and connection speed.
+
+
+It is currently hosted using Microsoft Azure and Netlify, it can be accesed at https://friendly-haibt-d1928a.netlify.app/.
+
+
+### Test account:
+``` 
+login: tester
+password: password
+```
+
+
 
 <!-- + text 
 # Backend
@@ -28,4 +42,3 @@ Piqosvod is a small
 [![Netlify Status](https://api.netlify.com/api/v1/badges/b1661399-dc43-4485-b71a-ceb3c076f04c/deploy-status)](https://app.netlify.com/sites/friendly-haibt-d1928a/deploys)
 + -->
 
-dsads
